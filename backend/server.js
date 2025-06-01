@@ -12,10 +12,15 @@ dotenv.config();
 const app = express();
 // Middleware
 const corsOptions = {
-  origin: 'https://vamsi-portfolio-rust.vercel.app', // Replace with your frontend's URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: [
+    'https://vamsi-portfolio-rust.vercel.app',
+    'http://localhost:5173',  // For local development
+    'http://localhost:3000'   // Alternative local development port
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // If you need to send cookies or authentication headers
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 // Apply CORS middleware globally
