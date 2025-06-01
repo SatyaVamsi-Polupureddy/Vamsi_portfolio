@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 // Middleware
 const corsOptions = {
-  origin: 'https://vamsi-portfolio-rust.vercel.app/', // Replace with your frontend's URL
+  origin: 'https://vamsi-portfolio-rust.vercel.app', // Replace with your frontend's URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true, // If you need to send cookies or authentication headers
