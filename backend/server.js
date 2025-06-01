@@ -14,6 +14,7 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
@@ -22,6 +23,9 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // Routes
 // app.use('/api/skills', skillsRoutes);
+app.get('/', (req, res) => {
+  res.send('Hello, world!');
+});
 app.use('/api/projects', projectsRoutes);
 app.use('/api/achievements', achievementsRoutes);
 
