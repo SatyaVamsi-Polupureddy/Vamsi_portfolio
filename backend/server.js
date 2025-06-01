@@ -10,9 +10,13 @@ import achievementsRoutes from './routes/achievements.js';
 dotenv.config();
 
 const app = express();
+const frontendUrl =process.env.FRONTEND_URL;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: frontendUrl,
+    methods: ['GET', 'POST'],
+  }));
 app.use(express.json());
 app.use(express.static('public'));
 
