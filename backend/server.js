@@ -24,7 +24,7 @@ mongoose.connect(process.env.MONGODB_URI)
 // Routes
 // app.use('/api/skills', skillsRoutes);
 app.get('/', (req, res) => {
-  res.send('Hello, world!');
+  res.send("Vamsi's portfolio backend running!");
 });
 app.use('/api/projects', projectsRoutes);
 app.use('/api/achievements', achievementsRoutes);
