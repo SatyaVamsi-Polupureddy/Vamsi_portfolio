@@ -9,6 +9,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
 
   const navigate = useNavigate();
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -20,9 +21,20 @@ const Navbar = () => {
 
   const handleNavClick = (section) => {
     setIsOpen(false);
-
     navigate("/admin");
-    // Close mobile menu and scroll to section
+  };
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      setTimeout(() => {
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+    setIsOpen(false);
   };
 
   const menuItems = [
@@ -37,7 +49,13 @@ const Navbar = () => {
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="nav-content">
         <div className="logo">
-          <a href={`#intro`}>
+          <a
+            href="#intro"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection("intro");
+            }}
+          >
             <img
               src="/images/logo.png"
               alt="Portfolio Logo"
@@ -53,7 +71,10 @@ const Navbar = () => {
                 key={item.id}
                 href={`#${item.id}`}
                 className="menu-item"
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToSection(item.id);
+                }}
               >
                 {item.label}
               </a>
@@ -87,7 +108,10 @@ const Navbar = () => {
                 key={item.id}
                 href={`#${item.id}`}
                 className="mobile-menu-item"
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToSection(item.id);
+                }}
               >
                 {item.label}
               </a>
