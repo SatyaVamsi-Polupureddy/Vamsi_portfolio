@@ -1,0 +1,28 @@
+.particles-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+
+.canvas-wrapper {
+  width: 100%;
+  height: 100vh;
+  background-color: black; /* make background black */
+  position: relative;
+  overflow: hidden;
+}
+
+.particles-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.canvas-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}

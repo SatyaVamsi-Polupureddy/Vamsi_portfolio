@@ -1,0 +1,98 @@
+Only keep necessary styles for Intro3D.jsx
+.canvas-wrapper {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.particles-bg {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.canvas-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  z-index: 2;
+}
+
+.view-work-button-wrapper {
+  position: absolute;
+  left: 50%;
+  bottom: 3rem;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.view-work-button-wrapper .view-work-button {
+  z-index: 9999;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  background-color: transparent;
+  color: #FFD700;
+  border: 2px solid #FFD700;
+  border-radius: 2rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.view-work-button-wrapper .view-work-button:hover {
+  background-color: #FFD700;
+  color: #000;
+  transform: translateY(-2px);
+}
+
+.canvas-loading-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #FFD700;
+  font-size: 2rem;
+  font-weight: bold;
+  text-shadow: 0 2px 8px #000, 0 0 2px #90CAF9;
+  background: rgba(20, 24, 40, 0.85);
+  padding: 2rem 3rem;
+  border-radius: 1.5rem;
+  z-index: 99999;
+  box-shadow: 0 4px 32px 0 rgba(0,0,0,0.25);
+  pointer-events: none;
+}
+
+canvas {
+  background: transparent !important;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+}
+
+@media screen and (max-width: 768px) {
+  .view-work-button-wrapper .view-work-button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .view-work-button-wrapper .view-work-button {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.95rem;
+  }
+} 
