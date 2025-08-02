@@ -11,5 +11,35 @@ html, body {
   background-color: rgb(30, 30, 30) !important;  /* Set your desired background here */
   color: white !important;
   scroll-behavior: smooth;
-  overflow-x: hidden
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* Better scrolling on iOS */
+}
+
+/* Ensure sections are properly positioned for mobile scrolling */
+section {
+  scroll-margin-top: 80px; /* Account for fixed navbar */
+}
+
+/* Mobile-specific scroll improvements */
+@media (max-width: 768px) {
+  html {
+    scroll-behavior: auto; /* Disable smooth scroll on mobile for better performance */
+  }
+  
+  body {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+  }
+}
+
+/* Add fadeIn animation for smooth transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

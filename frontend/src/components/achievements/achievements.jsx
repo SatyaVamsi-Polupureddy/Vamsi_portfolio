@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes } from "react-icons/fa";
 import axios from "axios";
+import { API_BASE_URL } from "../../config/api.js";
 import "./achievements.css";
-
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Achievements = () => {
   const [achievements, setAchievements] = useState([]);

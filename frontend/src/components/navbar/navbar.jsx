@@ -21,14 +21,43 @@ const Navbar = () => {
   const handleNavClick = (section) => {
     setIsOpen(false);
 
-    navigate("/admin");
-    // Close mobile menu and scroll to section
+    if (section === "admin") {
+      navigate("/admin");
+    } else {
+      // Navigate to home first if not already there, then scroll
+      if (window.location.pathname !== "/") {
+        navigate("/");
+        // Wait for navigation to complete, then scroll
+        setTimeout(() => {
+          scrollToSection(section);
+        }, 100);
+      } else {
+        scrollToSection(section);
+      }
+    }
+  };
+
+  const scrollToSection = (section) => {
+    // Add a small delay for mobile to ensure menu closes properly
+    const isMobile = window.innerWidth <= 768;
+    const delay = isMobile ? 100 : 0;
+
+    setTimeout(() => {
+      const element = document.getElementById(section);
+      if (element) {
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, delay);
   };
 
   const menuItems = [
     { id: "intro", label: "Home" },
     { id: "about", label: "About" },
     { id: "skills", label: "Skills" },
+    { id: "experience", label: "Experience" },
     { id: "projects", label: "Projects" },
     { id: "contact", label: "Contact" },
   ];
@@ -49,14 +78,13 @@ const Navbar = () => {
         <div className="nav-right">
           <div className="menu">
             {menuItems.map((item) => (
-              <a
+              <button
                 key={item.id}
-                href={`#${item.id}`}
                 className="menu-item"
-                onClick={() => setIsOpen(false)}
+                onClick={() => handleNavClick(item.id)}
               >
                 {item.label}
-              </a>
+              </button>
             ))}
           </div>
           <button
@@ -83,14 +111,13 @@ const Navbar = () => {
             className="mobile-menu"
           >
             {menuItems.map((item) => (
-              <a
+              <button
                 key={item.id}
-                href={`#${item.id}`}
                 className="mobile-menu-item"
-                onClick={() => setIsOpen(false)}
+                onClick={() => handleNavClick(item.id)}
               >
                 {item.label}
-              </a>
+              </button>
             ))}
             <button
               className="mobile-menu-item add-button"

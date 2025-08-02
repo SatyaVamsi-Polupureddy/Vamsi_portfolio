@@ -1,11 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FaTimes } from "react-icons/fa";
 import axios from "axios";
+import { API_BASE_URL } from "../../config/api.js";
 import "./AdminDashboard.css";
-
-const API_BASE_URL = "http://localhost:5000/api";
 
 const AdminDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -33,15 +32,70 @@ const AdminDashboard = ({ onLogout }) => {
       image: "",
       link: "",
     },
+    experiences: {
+      jobTitle: "",
+      company: "",
+      description: "",
+      location: "",
+      employmentType: "Full-time",
+      startDate: "",
+      endDate: "",
+      isCurrent: false,
+      technologies: "",
+      achievements: "",
+      companyLogo: "",
+    },
   });
   const [imagePreview, setImagePreview] = useState({
     projects: null,
     achievements: null,
+    experiences: null,
   });
   const fileInputRef = useRef({
     projects: null,
     achievements: null,
+    experiences: null,
   });
+
+  // Ensure all form fields are properly initialized
+  useEffect(() => {
+    setFormData({
+      projects: {
+        title: "",
+        description: "",
+        technologies: "",
+        image: "",
+        liveLink: "",
+        githubLink: "",
+      },
+      achievements: {
+        title: "",
+        description: "",
+        category: "",
+        date: {
+          type: "single",
+          singleDate: "",
+          startDate: "",
+          endDate: "",
+        },
+        image: "",
+        link: "",
+      },
+      experiences: {
+        jobTitle: "",
+        company: "",
+        description: "",
+        location: "",
+        employmentType: "Full-time",
+        startDate: "",
+        endDate: "",
+        isCurrent: false,
+        technologies: "",
+        achievements: "",
+        companyLogo: "",
+      },
+    });
+  }, []);
 
   const handleClose = () => {
     navigate("/");
@@ -53,7 +107,7 @@ const AdminDashboard = ({ onLogout }) => {
   };
 
   const handleInputChange = (e, type) => {
-    const { name, value } = e.target;
+    const { name, value, type: inputType, checked } = e.target;
     if (type === "achievements" && name.startsWith("date.")) {
       const dateField = name.split(".")[1];
       setFormData((prev) => ({
@@ -62,7 +116,7 @@ const AdminDashboard = ({ onLogout }) => {
           ...prev.achievements,
           date: {
             ...prev.achievements.date,
-            [dateField]: value,
+            [dateField]: value || "",
           },
         },
       }));
@@ -71,7 +125,7 @@ const AdminDashboard = ({ onLogout }) => {
         ...prev,
         [type]: {
           ...prev[type],
-          [name]: value,
+          [name]: inputType === "checkbox" ? checked : value || "",
         },
       }));
     }
@@ -105,7 +159,8 @@ const AdminDashboard = ({ onLogout }) => {
               liveLink: "",
               githubLink: "",
             }
-          : {
+          : type === "achievements"
+          ? {
               title: "",
               description: "",
               category: "",
@@ -117,6 +172,19 @@ const AdminDashboard = ({ onLogout }) => {
               },
               image: "",
               link: "",
+            }
+          : {
+              jobTitle: "",
+              company: "",
+              description: "",
+              location: "",
+              employmentType: "Full-time",
+              startDate: "",
+              endDate: "",
+              isCurrent: false,
+              technologies: "",
+              achievements: "",
+              companyLogo: "",
             }),
       },
     }));
@@ -138,8 +206,18 @@ const AdminDashboard = ({ onLogout }) => {
       const formDataToSend = new FormData();
 
       // Validate required fields before sending
-      if (!formData[type].title) {
-        throw new Error("Title is required");
+      if (type === "projects" || type === "achievements") {
+        if (!formData[type].title) {
+          throw new Error("Title is required");
+        }
+      }
+      if (type === "experiences") {
+        if (!formData[type].jobTitle) {
+          throw new Error("Job title is required");
+        }
+        if (!formData[type].company) {
+          throw new Error("Company is required");
+        }
       }
       if (type === "achievements" && !formData[type].category) {
         throw new Error("Category is required");
@@ -155,6 +233,17 @@ const AdminDashboard = ({ onLogout }) => {
           throw new Error("Project image is required");
         }
       }
+      if (type === "experiences") {
+        if (!formData[type].description) {
+          throw new Error("Description is required");
+        }
+        if (!formData[type].startDate) {
+          throw new Error("Start date is required");
+        }
+        if (formData[type].isCurrent === false && !formData[type].endDate) {
+          throw new Error("End date is required for past positions");
+        }
+      }
 
       // Add all form fields to FormData
       Object.keys(formData[type]).forEach((key) => {
@@ -168,7 +257,25 @@ const AdminDashboard = ({ onLogout }) => {
           const dateValue = JSON.stringify(formData[type][key]);
           formDataToSend.append(key, dateValue);
           console.log(`Adding ${key}:`, dateValue);
-        } else if (key !== "image") {
+        } else if (key === "technologies" && type === "experiences") {
+          const techValue = JSON.stringify(
+            formData[type][key]
+              .split(",")
+              .map((tech) => tech.trim())
+              .filter((tech) => tech)
+          );
+          formDataToSend.append(key, techValue);
+          console.log(`Adding ${key}:`, techValue);
+        } else if (key === "achievements" && type === "experiences") {
+          const achievementsValue = JSON.stringify(
+            formData[type][key]
+              .split(",")
+              .map((achievement) => achievement.trim())
+              .filter((achievement) => achievement)
+          );
+          formDataToSend.append(key, achievementsValue);
+          console.log(`Adding ${key}:`, achievementsValue);
+        } else if (key !== "image" && key !== "companyLogo") {
           formDataToSend.append(key, formData[type][key]);
           console.log(`Adding ${key}:`, formData[type][key]);
         }
@@ -177,8 +284,9 @@ const AdminDashboard = ({ onLogout }) => {
       // Add image if selected
       const fileInput = fileInputRef.current[type];
       if (fileInput && fileInput.files[0]) {
-        formDataToSend.append("image", fileInput.files[0]);
-        console.log("Adding image file:", fileInput.files[0].name);
+        const fieldName = type === "experiences" ? "companyLogo" : "image";
+        formDataToSend.append(fieldName, fileInput.files[0]);
+        console.log(`Adding ${fieldName} file:`, fileInput.files[0].name);
       }
 
       // Log all form data entries for debugging
@@ -208,6 +316,9 @@ const AdminDashboard = ({ onLogout }) => {
           }
           // Update the category in formData to ensure consistent case
           formDataToSend.set("category", category);
+          break;
+        case "experiences":
+          endpoint = `${API_BASE_URL}/experiences`;
           break;
         default:
           throw new Error("Invalid form type");
@@ -289,6 +400,14 @@ const AdminDashboard = ({ onLogout }) => {
     "Other",
   ];
 
+  const employmentTypes = [
+    "Full-time",
+    "Part-time",
+    "Contract",
+    "Internship",
+    "Freelance",
+  ];
+
   const renderForm = () => {
     switch (activeTab) {
       case "projects":
@@ -303,7 +422,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="title"
-                value={formData.projects.title}
+                value={formData.projects.title || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="Project Title"
                 required
@@ -313,7 +432,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Description</label>
               <textarea
                 name="description"
-                value={formData.projects.description}
+                value={formData.projects.description || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="Project Description"
                 required
@@ -324,7 +443,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="technologies"
-                value={formData.projects.technologies}
+                value={formData.projects.technologies || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="e.g., React, Node.js, MongoDB"
                 required
@@ -351,7 +470,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="url"
                 name="githubLink"
-                value={formData.projects.githubLink}
+                value={formData.projects.githubLink || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="GitHub Repository URL"
               />
@@ -361,7 +480,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="url"
                 name="liveLink"
-                value={formData.projects.liveLink}
+                value={formData.projects.liveLink || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="Live Project URL"
               />
@@ -384,7 +503,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="title"
-                value={formData.achievements.title}
+                value={formData.achievements.title || ""}
                 onChange={(e) => handleInputChange(e, "achievements")}
                 placeholder="Achievement Title"
                 required
@@ -394,7 +513,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Description (optional)</label>
               <textarea
                 name="description"
-                value={formData.achievements.description}
+                value={formData.achievements.description || ""}
                 onChange={(e) => handleInputChange(e, "achievements")}
                 placeholder="Achievement Description"
               />
@@ -403,7 +522,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Category</label>
               <select
                 name="category"
-                value={formData.achievements.category}
+                value={formData.achievements.category || ""}
                 onChange={(e) => handleInputChange(e, "achievements")}
                 required
               >
@@ -419,7 +538,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Date Type</label>
               <select
                 name="date.type"
-                value={formData.achievements.date.type}
+                value={formData.achievements.date.type || "single"}
                 onChange={(e) => handleInputChange(e, "achievements")}
               >
                 <option value="single">Single Date</option>
@@ -432,7 +551,7 @@ const AdminDashboard = ({ onLogout }) => {
                 <input
                   type="date"
                   name="date.singleDate"
-                  value={formData.achievements.date.singleDate}
+                  value={formData.achievements.date.singleDate || ""}
                   onChange={(e) => handleInputChange(e, "achievements")}
                 />
               </div>
@@ -443,7 +562,7 @@ const AdminDashboard = ({ onLogout }) => {
                   <input
                     type="date"
                     name="date.startDate"
-                    value={formData.achievements.date.startDate}
+                    value={formData.achievements.date.startDate || ""}
                     onChange={(e) => handleInputChange(e, "achievements")}
                     required={formData.achievements.date.type === "period"}
                   />
@@ -453,7 +572,7 @@ const AdminDashboard = ({ onLogout }) => {
                   <input
                     type="date"
                     name="date.endDate"
-                    value={formData.achievements.date.endDate}
+                    value={formData.achievements.date.endDate || ""}
                     onChange={(e) => handleInputChange(e, "achievements")}
                     required={formData.achievements.date.type === "period"}
                   />
@@ -480,13 +599,150 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="url"
                 name="link"
-                value={formData.achievements.link}
+                value={formData.achievements.link || ""}
                 onChange={(e) => handleInputChange(e, "achievements")}
                 placeholder="Achievement Link URL"
               />
             </div>
             <button type="submit" className="submit-button">
               Add Achievement
+            </button>
+          </form>
+        );
+
+      case "experiences":
+        return (
+          <form
+            onSubmit={(e) => handleSubmit(e, "experiences")}
+            className="admin-form"
+          >
+            <h3>Manage Experience</h3>
+            <div className="form-group">
+              <label>Job Title</label>
+              <input
+                type="text"
+                name="jobTitle"
+                value={formData.experiences.jobTitle || ""}
+                onChange={(e) => handleInputChange(e, "experiences")}
+                placeholder="e.g., Senior Software Engineer"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Company</label>
+              <input
+                type="text"
+                name="company"
+                value={formData.experiences.company || ""}
+                onChange={(e) => handleInputChange(e, "experiences")}
+                placeholder="Company Name"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                name="description"
+                value={formData.experiences.description || ""}
+                onChange={(e) => handleInputChange(e, "experiences")}
+                placeholder="Job description and responsibilities"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Location (optional)</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.experiences.location || ""}
+                onChange={(e) => handleInputChange(e, "experiences")}
+                placeholder="e.g., San Francisco, CA"
+              />
+            </div>
+            <div className="form-group">
+              <label>Employment Type</label>
+              <select
+                name="employmentType"
+                value={formData.experiences.employmentType || "Full-time"}
+                onChange={(e) => handleInputChange(e, "experiences")}
+                required
+              >
+                {employmentTypes.map((type, index) => (
+                  <option key={index} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Start Date</label>
+              <input
+                type="date"
+                name="startDate"
+                value={formData.experiences.startDate || ""}
+                onChange={(e) => handleInputChange(e, "experiences")}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  name="isCurrent"
+                  checked={formData.experiences.isCurrent}
+                  onChange={(e) => handleInputChange(e, "experiences")}
+                />
+                Current Position
+              </label>
+            </div>
+            {!formData.experiences.isCurrent && (
+              <div className="form-group">
+                <label>End Date</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.experiences.endDate || ""}
+                  onChange={(e) => handleInputChange(e, "experiences")}
+                  required={formData.experiences.isCurrent === false}
+                />
+              </div>
+            )}
+            <div className="form-group">
+              <label>Technologies (comma-separated, optional)</label>
+              <input
+                type="text"
+                name="technologies"
+                value={formData.experiences.technologies || ""}
+                onChange={(e) => handleInputChange(e, "experiences")}
+                placeholder="e.g., React, Node.js, MongoDB"
+              />
+            </div>
+            <div className="form-group">
+              <label>Key Achievements (comma-separated, optional)</label>
+              <textarea
+                name="achievements"
+                value={formData.experiences.achievements || ""}
+                onChange={(e) => handleInputChange(e, "experiences")}
+                placeholder="e.g., Led team of 5 developers, Improved performance by 40%"
+              />
+            </div>
+            <div className="form-group">
+              <label>Company Logo (optional)</label>
+              <input
+                type="file"
+                ref={(el) => (fileInputRef.current.experiences = el)}
+                onChange={(e) => handleImageChange(e, "experiences")}
+                accept="image/*"
+                className="file-input"
+              />
+              {imagePreview.experiences && (
+                <div className="image-preview">
+                  <img src={imagePreview.experiences} alt="Preview" />
+                </div>
+              )}
+            </div>
+            <button type="submit" className="submit-button">
+              Add Experience
             </button>
           </form>
         );
@@ -533,6 +789,14 @@ const AdminDashboard = ({ onLogout }) => {
               onClick={() => setActiveTab("achievements")}
             >
               Achievements
+            </button>
+            <button
+              className={`tab-button ${
+                activeTab === "experiences" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("experiences")}
+            >
+              Experiences
             </button>
           </div>
 
