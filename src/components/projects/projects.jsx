@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { API_BASE_URL } from "../../config/api.js";
 import "./projects.css";
-
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);

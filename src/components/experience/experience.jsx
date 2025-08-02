@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import axios from "axios";
+import { API_BASE_URL } from "../../config/api.js";
 import "./experience.css";
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
-
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Experience = () => {
   const [experiences, setExperiences] = useState([]);
@@ -19,13 +18,26 @@ const Experience = () => {
   useEffect(() => {
     const fetchExperiences = async () => {
       try {
+        console.log('API_BASE_URL:', API_BASE_URL);
+        console.log('Fetching experiences from:', `${API_BASE_URL}/experiences`);
+        console.log('Environment variables:', {
+          VITE_BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
+          MODE: import.meta.env.MODE,
+          DEV: import.meta.env.DEV
+        });
+        
         const response = await axios.get(`${API_BASE_URL}/experiences`);
+        console.log('Experiences response:', response.data);
+        console.log('Number of experiences:', response.data.length);
         setExperiences(response.data);
         setLoading(false);
       } catch (err) {
         setError("Failed to load experiences");
         setLoading(false);
         console.error("Error fetching experiences:", err);
+        console.error("Error details:", err.response?.data);
+        console.error("Error status:", err.response?.status);
+        console.error("Error headers:", err.response?.headers);
       }
     };
 
@@ -162,17 +174,22 @@ const Experience = () => {
   };
 
   if (loading) {
+    console.log('Experience component: Loading...');
     return null;
   }
 
   if (error) {
+    console.log('Experience component: Error:', error);
     return null;
   }
 
   // Don't render the section if there are no experiences
   if (experiences.length === 0) {
+    console.log('Experience component: No experiences found');
     return null;
   }
+
+  console.log('Experience component: Rendering', experiences.length, 'experiences');
 
   return (
     <section id="experience" className="experience-section">

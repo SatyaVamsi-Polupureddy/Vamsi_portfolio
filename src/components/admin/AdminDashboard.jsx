@@ -1,11 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FaTimes } from "react-icons/fa";
 import axios from "axios";
+import { API_BASE_URL } from "../../config/api.js";
 import "./AdminDashboard.css";
-
-const API_BASE_URL = "http://localhost:5000/api";
 
 const AdminDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -58,6 +57,46 @@ const AdminDashboard = ({ onLogout }) => {
     experiences: null,
   });
 
+  // Ensure all form fields are properly initialized
+  useEffect(() => {
+    setFormData({
+      projects: {
+        title: "",
+        description: "",
+        technologies: "",
+        image: "",
+        liveLink: "",
+        githubLink: "",
+      },
+      achievements: {
+        title: "",
+        description: "",
+        category: "",
+        date: {
+          type: "single",
+          singleDate: "",
+          startDate: "",
+          endDate: "",
+        },
+        image: "",
+        link: "",
+      },
+      experiences: {
+        jobTitle: "",
+        company: "",
+        description: "",
+        location: "",
+        employmentType: "Full-time",
+        startDate: "",
+        endDate: "",
+        isCurrent: false,
+        technologies: "",
+        achievements: "",
+        companyLogo: "",
+      },
+    });
+  }, []);
+
   const handleClose = () => {
     navigate("/");
   };
@@ -77,7 +116,7 @@ const AdminDashboard = ({ onLogout }) => {
           ...prev.achievements,
           date: {
             ...prev.achievements.date,
-            [dateField]: value,
+            [dateField]: value || "",
           },
         },
       }));
@@ -86,7 +125,7 @@ const AdminDashboard = ({ onLogout }) => {
         ...prev,
         [type]: {
           ...prev[type],
-          [name]: inputType === "checkbox" ? checked : value,
+          [name]: inputType === "checkbox" ? checked : value || "",
         },
       }));
     }
@@ -167,8 +206,18 @@ const AdminDashboard = ({ onLogout }) => {
       const formDataToSend = new FormData();
 
       // Validate required fields before sending
-      if (!formData[type].title) {
-        throw new Error("Title is required");
+      if (type === "projects" || type === "achievements") {
+        if (!formData[type].title) {
+          throw new Error("Title is required");
+        }
+      }
+      if (type === "experiences") {
+        if (!formData[type].jobTitle) {
+          throw new Error("Job title is required");
+        }
+        if (!formData[type].company) {
+          throw new Error("Company is required");
+        }
       }
       if (type === "achievements" && !formData[type].category) {
         throw new Error("Category is required");
@@ -191,7 +240,7 @@ const AdminDashboard = ({ onLogout }) => {
         if (!formData[type].startDate) {
           throw new Error("Start date is required");
         }
-        if (!formData[type].isCurrent && !formData[type].endDate) {
+        if (formData[type].isCurrent === false && !formData[type].endDate) {
           throw new Error("End date is required for past positions");
         }
       }
@@ -210,13 +259,19 @@ const AdminDashboard = ({ onLogout }) => {
           console.log(`Adding ${key}:`, dateValue);
         } else if (key === "technologies" && type === "experiences") {
           const techValue = JSON.stringify(
-            formData[type][key].split(",").map((tech) => tech.trim()).filter(tech => tech)
+            formData[type][key]
+              .split(",")
+              .map((tech) => tech.trim())
+              .filter((tech) => tech)
           );
           formDataToSend.append(key, techValue);
           console.log(`Adding ${key}:`, techValue);
         } else if (key === "achievements" && type === "experiences") {
           const achievementsValue = JSON.stringify(
-            formData[type][key].split(",").map((achievement) => achievement.trim()).filter(achievement => achievement)
+            formData[type][key]
+              .split(",")
+              .map((achievement) => achievement.trim())
+              .filter((achievement) => achievement)
           );
           formDataToSend.append(key, achievementsValue);
           console.log(`Adding ${key}:`, achievementsValue);
@@ -367,7 +422,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="title"
-                value={formData.projects.title}
+                value={formData.projects.title || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="Project Title"
                 required
@@ -377,7 +432,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Description</label>
               <textarea
                 name="description"
-                value={formData.projects.description}
+                value={formData.projects.description || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="Project Description"
                 required
@@ -388,7 +443,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="technologies"
-                value={formData.projects.technologies}
+                value={formData.projects.technologies || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="e.g., React, Node.js, MongoDB"
                 required
@@ -415,7 +470,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="url"
                 name="githubLink"
-                value={formData.projects.githubLink}
+                value={formData.projects.githubLink || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="GitHub Repository URL"
               />
@@ -425,7 +480,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="url"
                 name="liveLink"
-                value={formData.projects.liveLink}
+                value={formData.projects.liveLink || ""}
                 onChange={(e) => handleInputChange(e, "projects")}
                 placeholder="Live Project URL"
               />
@@ -448,7 +503,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="title"
-                value={formData.achievements.title}
+                value={formData.achievements.title || ""}
                 onChange={(e) => handleInputChange(e, "achievements")}
                 placeholder="Achievement Title"
                 required
@@ -458,7 +513,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Description (optional)</label>
               <textarea
                 name="description"
-                value={formData.achievements.description}
+                value={formData.achievements.description || ""}
                 onChange={(e) => handleInputChange(e, "achievements")}
                 placeholder="Achievement Description"
               />
@@ -467,7 +522,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Category</label>
               <select
                 name="category"
-                value={formData.achievements.category}
+                value={formData.achievements.category || ""}
                 onChange={(e) => handleInputChange(e, "achievements")}
                 required
               >
@@ -483,7 +538,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Date Type</label>
               <select
                 name="date.type"
-                value={formData.achievements.date.type}
+                value={formData.achievements.date.type || "single"}
                 onChange={(e) => handleInputChange(e, "achievements")}
               >
                 <option value="single">Single Date</option>
@@ -496,7 +551,7 @@ const AdminDashboard = ({ onLogout }) => {
                 <input
                   type="date"
                   name="date.singleDate"
-                  value={formData.achievements.date.singleDate}
+                  value={formData.achievements.date.singleDate || ""}
                   onChange={(e) => handleInputChange(e, "achievements")}
                 />
               </div>
@@ -507,7 +562,7 @@ const AdminDashboard = ({ onLogout }) => {
                   <input
                     type="date"
                     name="date.startDate"
-                    value={formData.achievements.date.startDate}
+                    value={formData.achievements.date.startDate || ""}
                     onChange={(e) => handleInputChange(e, "achievements")}
                     required={formData.achievements.date.type === "period"}
                   />
@@ -517,7 +572,7 @@ const AdminDashboard = ({ onLogout }) => {
                   <input
                     type="date"
                     name="date.endDate"
-                    value={formData.achievements.date.endDate}
+                    value={formData.achievements.date.endDate || ""}
                     onChange={(e) => handleInputChange(e, "achievements")}
                     required={formData.achievements.date.type === "period"}
                   />
@@ -544,7 +599,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="url"
                 name="link"
-                value={formData.achievements.link}
+                value={formData.achievements.link || ""}
                 onChange={(e) => handleInputChange(e, "achievements")}
                 placeholder="Achievement Link URL"
               />
@@ -567,7 +622,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="jobTitle"
-                value={formData.experiences.jobTitle}
+                value={formData.experiences.jobTitle || ""}
                 onChange={(e) => handleInputChange(e, "experiences")}
                 placeholder="e.g., Senior Software Engineer"
                 required
@@ -578,7 +633,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="company"
-                value={formData.experiences.company}
+                value={formData.experiences.company || ""}
                 onChange={(e) => handleInputChange(e, "experiences")}
                 placeholder="Company Name"
                 required
@@ -588,7 +643,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Description</label>
               <textarea
                 name="description"
-                value={formData.experiences.description}
+                value={formData.experiences.description || ""}
                 onChange={(e) => handleInputChange(e, "experiences")}
                 placeholder="Job description and responsibilities"
                 required
@@ -599,7 +654,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="location"
-                value={formData.experiences.location}
+                value={formData.experiences.location || ""}
                 onChange={(e) => handleInputChange(e, "experiences")}
                 placeholder="e.g., San Francisco, CA"
               />
@@ -608,7 +663,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Employment Type</label>
               <select
                 name="employmentType"
-                value={formData.experiences.employmentType}
+                value={formData.experiences.employmentType || "Full-time"}
                 onChange={(e) => handleInputChange(e, "experiences")}
                 required
               >
@@ -624,7 +679,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="date"
                 name="startDate"
-                value={formData.experiences.startDate}
+                value={formData.experiences.startDate || ""}
                 onChange={(e) => handleInputChange(e, "experiences")}
                 required
               />
@@ -646,9 +701,9 @@ const AdminDashboard = ({ onLogout }) => {
                 <input
                   type="date"
                   name="endDate"
-                  value={formData.experiences.endDate}
+                  value={formData.experiences.endDate || ""}
                   onChange={(e) => handleInputChange(e, "experiences")}
-                  required={!formData.experiences.isCurrent}
+                  required={formData.experiences.isCurrent === false}
                 />
               </div>
             )}
@@ -657,7 +712,7 @@ const AdminDashboard = ({ onLogout }) => {
               <input
                 type="text"
                 name="technologies"
-                value={formData.experiences.technologies}
+                value={formData.experiences.technologies || ""}
                 onChange={(e) => handleInputChange(e, "experiences")}
                 placeholder="e.g., React, Node.js, MongoDB"
               />
@@ -666,7 +721,7 @@ const AdminDashboard = ({ onLogout }) => {
               <label>Key Achievements (comma-separated, optional)</label>
               <textarea
                 name="achievements"
-                value={formData.experiences.achievements}
+                value={formData.experiences.achievements || ""}
                 onChange={(e) => handleInputChange(e, "experiences")}
                 placeholder="e.g., Led team of 5 developers, Improved performance by 40%"
               />
